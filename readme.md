@@ -1,6 +1,6 @@
 
 
-# 🧠 Adaptive Hybrid Runtime – Part 1 (CPU Path)
+# 🧠 Adaptive Hybrid Runtime
 
 This project implements the **CPU-side runtime** of an *Adaptive Hybrid Runtime* for Sparse Tensor Contractions.  
 The runtime is designed to **adaptively distribute tensor computations** between CPU and GPU based on block density — optimizing cache locality, loop-level parallelism, and vectorization.
