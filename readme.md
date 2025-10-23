@@ -64,47 +64,6 @@ The runtime pipeline consists of four main stages:
 
 ---
 
-## ⚙️ Environment Setup (macOS Example)
-
-
-Hpc-project-part1/
-│
-├── 01_download.py           # Download OrganMNIST3D → .npz
-├── make_tiles.py            # Split 3D volumes into tiles & compute density
-├── prep_vectors.py          # Prepare CPU vectors and weight matrices
-│
-├── blocks/                  # Folder containing saved 3D blocks (.npy)
-├── blocks_manifest.csv      # CSV file with block density & routing metadata
-│
-├── cpu/
-│   ├── kernel.cpp           # OpenMP/SIMD kernels for CPU optimization
-│   └── run_cpu.sh           # Build-and-run script (auto-detects LLVM/GCC)
-│
-├── reports/
-│   └── cpu_autotune.json    # Benchmark performance results (runtime, GFLOPs)
-│
-└── README.md      
-
-## Project Structure
-Hpc-project-part1/
-│
-├── 01_download.py           # Download OrganMNIST3D → .npz
-├── make_tiles.py            # Split 3D volumes into tiles & compute density
-├── prep_vectors.py          # Prepare CPU vectors and weight matrices
-│
-├── blocks/                  # Folder containing saved 3D blocks (.npy)
-├── blocks_manifest.csv      # CSV file with block density & routing metadata
-│
-├── cpu/
-│   ├── kernel.cpp           # OpenMP/SIMD kernels for CPU optimization
-│   └── run_cpu.sh           # Build-and-run script (auto-detects LLVM/GCC)
-│
-├── reports/
-│   └── cpu_autotune.json    # Benchmark performance results (runtime, GFLOPs)
-│
-└── README.md                # Project documentation (this file)
-
-
 ## Environment Setup
 
 ### Prerequisites
@@ -117,20 +76,13 @@ Hpc-project-part1/
 
 
 
-#### 1.Create Conda Environment
+#### 1.Create Conda Environment and install dependencies
 
 ```bash
 conda env create -f environment.yml python=3.10
 conda activate hrt
 ```
 
-#### 4. Install Python Dependencies
-
-```bash
-pip install numpy pandas tqdm medmnist torch torchvision
-```
-
-**Note**: CUDA/GPU dependencies are not required for Part 1.
 
 ---
 
@@ -250,9 +202,28 @@ Preparing vectors: 100%|██████████| 100/100 [00:02<00:00]
 
 ### Compilation and Benchmarking
 
-Compile the CPU kernels and execute performance benchmarks.
+Run the following commands from the `cpu/` directory:
 
-#### Compilation Options
+
+```bash
+
+ cd cpu  
+ 
+```
+
+```bash
+# Using Homebrew GCC
+GXX=$(ls /opt/homebrew/bin/g++-* 2>/dev/null | head -n1)
+echo "Using $GXX"
+"$GXX" -O3 -march=native -std=c++17 -fopenmp kernel.cpp -o cpu_bench
+
+# or, using LLVM Clang
+LLVM_PREFIX="$(brew --prefix llvm)"
+"$LLVM_PREFIX/bin/clang++" -O3 -march=native -std=c++17 -fopenmp \
+  -I"$LLVM_PREFIX/include" kernel.cpp -o cpu_bench \
+  -L"$LLVM_PREFIX/lib" -Wl,-rpath,"$LLVM_PREFIX/lib" -lomp
+
+```
 
 
 ---
@@ -265,29 +236,14 @@ Compile the CPU kernels and execute performance benchmarks.
 ```
 ===== CPU Kernel Benchmark =====
 
-Variant: baseline
-  Execution time: 122.4 ms
-  Throughput:     8.93 GFLOP/s
+   baseline  time=2.003 ms  GFLOP/s=14.0282
+   scalar_unroll_4  time=0.795 ms  GFLOP/s=35.3441
+   scalar_unroll_8  time=0.612 ms  GFLOP/s=45.9127
+   loop_interchange  time=0.356 ms  GFLOP/s=78.9285
+              ile_i  time=0.331 ms  GFLOP/s=84.8899
 
-Variant: scalar_unroll_4
-  Execution time: 78.2 ms
-  Throughput:     14.02 GFLOP/s
-  Speedup:        1.57×
+BEST VARIANT: tile_i
 
-Variant: scalar_unroll_8
-  Execution time: 65.7 ms
-  Throughput:     16.74 GFLOP/s
-  Speedup:        1.86×
-
-Variant: loop_interchange
-  Execution time: 59.1 ms
-  Throughput:     18.55 GFLOP/s
-  Speedup:        2.07×
-
-Variant: tile_i
-  Execution time: 52.3 ms
-  Throughput:     21.09 GFLOP/s
-  Speedup:        2.34×
 
 ===================================
 OPTIMAL KERNEL: tile_i
