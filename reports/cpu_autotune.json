@@ -1,0 +1,11 @@
+{
+  "N": 2744, "OUT": 64, "count": 80,
+  "results": [
+    {"name":"baseline","ms":2.003,"gflops":14.0282},
+    {"name":"loop_interchange","ms":0.356,"gflops":78.9285},
+    {"name":"scalar_unroll_4","ms":0.795,"gflops":35.3441},
+    {"name":"scalar_unroll_8","ms":0.612,"gflops":45.9127},
+    {"name":"tile_i","ms":0.331,"gflops":84.8899}
+  ],
+  "best": "tile_i"
+}

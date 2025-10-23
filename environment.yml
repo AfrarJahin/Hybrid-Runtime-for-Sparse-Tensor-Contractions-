@@ -1,0 +1,14 @@
+name: hrt
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - numpy
+  - pandas
+  - tqdm
+  - pip
+  - pip:
+      - medmnist
+      - torch==2.4.1
+      - torchvision==0.19.1
